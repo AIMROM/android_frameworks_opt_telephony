@@ -110,7 +110,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * {@hide}
  */
-public class RIL extends BaseCommands implements CommandsInterface {
+public final class RIL extends BaseCommands implements CommandsInterface {
     static final String RILJ_LOG_TAG = "RILJ";
     // Have a separate wakelock instance for Ack
     static final String RILJ_ACK_WAKELOCK_NAME = "RILJ_ACK_WL";
@@ -162,7 +162,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
     private List<String> mOldRilFeatures;
 
     /* default work source which will blame phone process */
-    protected WorkSource mRILDefaultWorkSource;
+    private WorkSource mRILDefaultWorkSource;
 
     /* Worksource containing all applications causing wakelock to be held */
     private WorkSource mActiveWakelockWorkSource;
@@ -170,7 +170,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
     /** Telephony metrics instance for logging metrics event */
     private TelephonyMetrics mMetrics = TelephonyMetrics.getInstance();
 
-    protected boolean mIsMobileNetworkSupported;
+    boolean mIsMobileNetworkSupported;
     RadioResponse mRadioResponse;
     RadioIndication mRadioIndication;
     volatile IRadio mRadioProxy = null;
@@ -321,7 +321,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
         }
     }
 
-    protected void resetProxyAndRequestList() {
+    private void resetProxyAndRequestList() {
         mRadioProxy = null;
         mOemHookProxy = null;
 
@@ -521,12 +521,6 @@ public class RIL extends BaseCommands implements CommandsInterface {
         RILRequest rr = RILRequest.obtain(request, result, workSource);
         addRequest(rr);
         return rr;
-    }
-
-    protected int obtainRequestSerial(int request, Message result, WorkSource workSource) {
-        RILRequest rr = RILRequest.obtain(request, result, workSource);
-        addRequest(rr);
-        return rr.mSerial;
     }
 
     private void handleRadioProxyExceptionForRR(RILRequest rr, String caller, Exception e) {
@@ -3681,10 +3675,6 @@ public class RIL extends BaseCommands implements CommandsInterface {
     }
 
     @Override
-    public void getAtr(Message response) {
-    }
-
-    @Override
     public void getIMEI(Message result) {
         throw new RuntimeException("getIMEI not expected to be called");
     }
@@ -3797,7 +3787,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
      * @param responseInfo RadioResponseInfo received in response callback
      * @return RILRequest corresponding to the response
      */
-    protected RILRequest processResponse(RadioResponseInfo responseInfo) {
+    RILRequest processResponse(RadioResponseInfo responseInfo) {
         int serial = responseInfo.serial;
         int error = responseInfo.error;
         int type = responseInfo.type;
@@ -3889,15 +3879,6 @@ public class RIL extends BaseCommands implements CommandsInterface {
         return rr;
     }
 
-    protected Message getMessageFromRequest(Object request) {
-        RILRequest rr = (RILRequest)request;
-        Message result = null;
-        if (rr != null) {
-                result = rr.mResult;
-        }
-        return result;
-    }
-
     /**
      * This is a helper function to be called at the end of all RadioResponse callbacks.
      * It takes care of sending error response, logging, decrementing wakelock if needed, and
@@ -3927,11 +3908,6 @@ public class RIL extends BaseCommands implements CommandsInterface {
             }
             rr.release();
         }
-    }
-
-    protected void processResponseDone(Object request, RadioResponseInfo responseInfo, Object ret) {
-        RILRequest rr = (RILRequest)request;
-        processResponseDone(rr, responseInfo, ret);
     }
 
     /**
@@ -4608,8 +4584,6 @@ public class RIL extends BaseCommands implements CommandsInterface {
                 return "RIL_REQUEST_START_NETWORK_SCAN";
             case RIL_REQUEST_STOP_NETWORK_SCAN:
                 return "RIL_REQUEST_STOP_NETWORK_SCAN";
-            case RIL_REQUEST_SIM_QUERY_ATR:
-                return "RIL_REQUEST_SIM_QUERY_ATR";
             default: return "<unknown request>";
         }
     }
